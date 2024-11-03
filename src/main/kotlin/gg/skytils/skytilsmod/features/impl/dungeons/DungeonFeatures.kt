@@ -104,8 +104,10 @@ object DungeonFeatures {
     private var terracottaEndTime = -1.0
     private var rerollClicks = 0
     private var alertedSpiritPet = false
-    private const val SPIRIT_PET_TEXTURE =
-        "ewogICJ0aW1lc3RhbXAiIDogMTU5NTg2MjAyNjE5OSwKICAicHJvZmlsZUlkIiA6ICI0ZWQ4MjMzNzFhMmU0YmI3YTVlYWJmY2ZmZGE4NDk1NyIsCiAgInByb2ZpbGVOYW1lIiA6ICJGaXJlYnlyZDg4IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzhkOWNjYzY3MDY3N2QwY2ViYWFkNDA1OGQ2YWFmOWFjZmFiMDlhYmVhNWQ4NjM3OWEwNTk5MDJmMmZlMjI2NTUiCiAgICB9CiAgfQp9"
+    private val SPIRIT_PET_TEXTURES = setOf(
+        "ewogICJ0aW1lc3RhbXAiIDogMTU5NTg2MjAyNjE5OSwKICAicHJvZmlsZUlkIiA6ICI0ZWQ4MjMzNzFhMmU0YmI3YTVlYWJmY2ZmZGE4NDk1NyIsCiAgInByb2ZpbGVOYW1lIiA6ICJGaXJlYnlyZDg4IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzhkOWNjYzY3MDY3N2QwY2ViYWFkNDA1OGQ2YWFmOWFjZmFiMDlhYmVhNWQ4NjM3OWEwNTk5MDJmMmZlMjI2NTUiCiAgICB9CiAgfQp9",
+        "ewogICJ0aW1lc3RhbXAiIDogMTY5OTU1NDAwMzI4MywKICAicHJvZmlsZUlkIiA6ICJlOTgxNDA1MTJiNmQ0MzVhOWQwYzdmY2RjMzQxM2M3OSIsCiAgInByb2ZpbGVOYW1lIiA6ICJOYXphcmJla0FsZGEiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjhmMzNhNDkxODVjMDdhZTIxZjNiNGQ1YTU2OWFjZDEyYWUxMTE1N2U0OTZjY2NjMjY0ODdlZDFiMDlkZWQzZiIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9"
+    )
     private var lastLitUpTime = -1L
     private val lastBlockPos = BlockPos(7, 77, 34)
     private var startWithoutFullParty = false
@@ -213,7 +215,7 @@ object DungeonFeatures {
                     if (it !is EntityArmorStand || it.hasCustomName()) return@any false
                     val item = it.heldItem ?: return@any false
                     if (item.item !is ItemSkull) return@any false
-                    return@any ItemUtil.getSkullTexture(item) == SPIRIT_PET_TEXTURE
+                    return@any (SPIRIT_PET_TEXTURES.contains(ItemUtil.getSkullTexture(item)))
                 }) {
                 UChat.chat(
                     "$prefix §cSomeone in your party has a Spirit Pet equipped!"
@@ -435,7 +437,7 @@ object DungeonFeatures {
                 GlStateManager.enableDepth()
                 GlStateManager.enableCull()
             }
-            if (event.entity is EntityArmorStand && event.entity.isInvisible && Skytils.config.hideFairies && event.entity.heldItem != null && ItemUtil.getSkullTexture(event.entity.heldItem) == "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTZjM2UzMWNmYzY2NzMzMjc1YzQyZmNmYjVkOWE0NDM0MmQ2NDNiNTVjZDE0YzljNzdkMjczYTIzNTIifX19") {
+            if (event.entity is EntityArmorStand && event.entity.isInvisible && Skytils.config.hideFairies && event.entity.heldItem != null && ItemUtil.getSkullTexture(event.entity.heldItem) == "ewogICJ0aW1lc3RhbXAiIDogMTcxOTQ2MzA5MTA0NywKICAicHJvZmlsZUlkIiA6ICIyNjRkYzBlYjVlZGI0ZmI3OTgxNWIyZGY1NGY0OTgyNCIsCiAgInByb2ZpbGVOYW1lIiA6ICJxdWludHVwbGV0IiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzJlZWRjZmZjNmExMWEzODM0YTI4ODQ5Y2MzMTZhZjdhMjc1MmEzNzZkNTM2Y2Y4NDAzOWNmNzkxMDhiMTY3YWUiCiAgICB9CiAgfQp9") {
                 event.isCanceled = true
             }
             if (event.entity is EntityArmorStand && event.entity.hasCustomName()) {
