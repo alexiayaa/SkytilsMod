@@ -63,7 +63,7 @@ object Ping {
             if (invokedCommand) UChat.chat("§cAlready pinging!")
             return
         }
-        if (System.nanoTime() - lastPongAt > 1_000_000L * 5_000) {
+        if (System.nanoTime() - lastPongAt < 1_000_000L * 5_000) {
             if (invokedCommand) {
                 invokedCommand = false
                 displayPing()
