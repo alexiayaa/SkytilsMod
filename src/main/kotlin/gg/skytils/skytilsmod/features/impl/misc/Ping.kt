@@ -63,11 +63,30 @@ object Ping {
             if (invokedCommand) UChat.chat("§cAlready pinging!")
             return
         }
+        if (System.nanoTime() - lastPongAt > 1_000_000L * 5_000) {
+            if (invokedCommand) displayPing()
+            return
+        }
         Skytils.launch {
             lastPingAt = System.nanoTime()
             ServerboundPingPacket().getResponse<ClientboundPingPacket>()
         }
     }
+
+    fun displayPing() {
+        UChat.chat(
+            "$prefix §${
+                when {
+                    pingCache < 50 -> "a"
+                    pingCache < 100 -> "2"
+                    pingCache < 149 -> "e"
+                    pingCache < 249 -> "6"
+                    else -> "c"
+                }
+            }${pingCache.roundToPrecision(2)} §7ms"
+        )
+    }
+
 
     @SubscribeEvent
     fun onPacket(event: PacketEvent.ReceiveEvent) {
@@ -81,23 +100,12 @@ object Ping {
     fun onHypixelPacket(event: HypixelPacketEvent.ReceiveEvent) {
         if (lastPingAt > 0 && event.packet is ClientboundPingPacket) {
             val now = System.nanoTime()
-            val diff = (abs(now - lastPingAt) / 1_000_000.0)
+            pingCache = (abs(now - lastPingAt) / 1_000_000.0)
             lastPingAt *= -1
             lastPongAt = now
-            pingCache = diff
             if (invokedCommand) {
                 invokedCommand = false
-                UChat.chat(
-                    "$prefix §${
-                        when {
-                            diff < 50 -> "a"
-                            diff < 100 -> "2"
-                            diff < 149 -> "e"
-                            diff < 249 -> "6"
-                            else -> "c"
-                        }
-                    }${diff.roundToPrecision(2)} §7ms"
-                )
+                displayPing()
             }
         }
     }
