@@ -23,7 +23,9 @@ import gg.skytils.skytilsmod.Skytils
 import gg.skytils.skytilsmod.Skytils.Companion.mc
 import gg.skytils.skytilsmod.Skytils.Companion.prefix
 import gg.skytils.skytilsmod.core.structure.GuiElement
+import gg.skytils.skytilsmod.events.impl.HypixelPacketEvent
 import gg.skytils.skytilsmod.events.impl.PacketEvent
+import gg.skytils.skytilsmod.listeners.ServerPayloadInterceptor.getResponse
 import gg.skytils.skytilsmod.mixins.transformers.accessors.AccessorServerListEntryNormal
 import gg.skytils.skytilsmod.utils.NumberUtil
 import gg.skytils.skytilsmod.utils.NumberUtil.roundToPrecision
@@ -31,6 +33,8 @@ import gg.skytils.skytilsmod.utils.Utils
 import gg.skytils.skytilsmod.utils.graphics.SmartFontRenderer
 import gg.skytils.skytilsmod.utils.graphics.colors.CommonColors
 import gg.skytils.skytilsmod.utils.hasMoved
+import net.hypixel.modapi.packet.impl.clientbound.ClientboundPingPacket
+import net.hypixel.modapi.packet.impl.serverbound.ServerboundPingPacket
 import net.minecraft.client.multiplayer.ServerData
 import net.minecraft.client.network.OldServerPinger
 import net.minecraft.network.play.client.C16PacketClientStatus
@@ -39,6 +43,8 @@ import net.minecraft.network.play.server.S37PacketStatistics
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent
 import kotlin.math.abs
 import kotlin.math.absoluteValue
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
 
 object Ping {
 
@@ -56,42 +62,39 @@ object Ping {
             if (invokedCommand) UChat.chat("§cAlready pinging!")
             return
         }
-        mc.thePlayer.sendQueue.networkManager.sendPacket(
-            C16PacketClientStatus(C16PacketClientStatus.EnumState.REQUEST_STATS),
-            {
-                lastPingAt = System.nanoTime()
-            }
-        )
+        Skytils.launch {
+            lastPingAt = System.nanoTime()
+            ServerboundPingPacket().getResponse<ClientboundPingPacket>()
+        }
     }
 
     @SubscribeEvent
     fun onPacket(event: PacketEvent.ReceiveEvent) {
-        if (lastPingAt > 0) {
-            when (event.packet) {
-                is S01PacketJoinGame -> {
-                    lastPingAt = -1L
-                    invokedCommand = false
-                }
+        if (lastPingAt > 0 && event.packet is S01PacketJoinGame) {
+            lastPingAt = -1L
+            invokedCommand = false
+        }
+    }
 
-                is S37PacketStatistics -> {
-                    val diff = (abs(System.nanoTime() - lastPingAt) / 1_000_000.0)
-                    lastPingAt *= -1
-                    pingCache = diff
-                    if (invokedCommand) {
-                        invokedCommand = false
-                        UChat.chat(
-                            "$prefix §${
-                                when {
-                                    diff < 50 -> "a"
-                                    diff < 100 -> "2"
-                                    diff < 149 -> "e"
-                                    diff < 249 -> "6"
-                                    else -> "c"
-                                }
-                            }${diff.roundToPrecision(2)} §7ms"
-                        )
-                    }
-                }
+    @SubscribeEvent
+    fun onHypixelPacket(event: HypixelPacketEvent.ReceiveEvent) {
+        if (lastPingAt > 0 && event.packet is ClientboundPingPacket) {
+            val diff = (abs(System.nanoTime() - lastPingAt) / 1_000_000.0)
+            lastPingAt *= -1
+            pingCache = diff
+            if (invokedCommand) {
+                invokedCommand = false
+                UChat.chat(
+                    "$prefix §${
+                        when {
+                            diff < 50 -> "a"
+                            diff < 100 -> "2"
+                            diff < 149 -> "e"
+                            diff < 249 -> "6"
+                            else -> "c"
+                        }
+                    }${diff.roundToPrecision(2)} §7ms"
+                )
             }
         }
     }
@@ -116,9 +119,7 @@ object Ping {
                     }
 
                     2 -> {
-                        if (lastPingAt < 0 && (mc.currentScreen != null || !mc.thePlayer.hasMoved) && System.nanoTime()
-                            - lastPingAt.absoluteValue > 1_000_000L * 5_000
-                        ) {
+                        if (lastPingAt < 0 && System.nanoTime() - lastPingAt.absoluteValue > 1_000_000L * 5_000) {
                             sendPing()
                         }
                     }

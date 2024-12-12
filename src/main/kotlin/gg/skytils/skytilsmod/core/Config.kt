@@ -2619,7 +2619,7 @@ object Config : Vigilant(
 
     @Property(
         type = PropertyType.SELECTOR, name = "Ping Display",
-        description = "Shows your ping to the current server, similar to the /skytils ping command.\nYou must be in a GUI or not moving in order to queue a ping.\nThere is a tiny chance that this will cause you to be punished.",
+        description = "Shows your ping to the current server, similar to the /skytils ping command.",
         category = "Miscellaneous", subcategory = "Other",
         options = ["Off", "Server List", "Packet"],
         i18nName = "skytils.config.miscellaneous.other.ping_display",
