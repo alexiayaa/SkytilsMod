@@ -49,6 +49,7 @@ import kotlinx.coroutines.launch
 object Ping {
 
     var lastPingAt = -1L
+    var lastPongAt = -1L
 
     var pingCache = -1.0
 
@@ -79,8 +80,10 @@ object Ping {
     @SubscribeEvent
     fun onHypixelPacket(event: HypixelPacketEvent.ReceiveEvent) {
         if (lastPingAt > 0 && event.packet is ClientboundPingPacket) {
-            val diff = (abs(System.nanoTime() - lastPingAt) / 1_000_000.0)
+            val now = System.nanoTime()
+            val diff = (abs(now - lastPingAt) / 1_000_000.0)
             lastPingAt *= -1
+            lastPongAt = now
             pingCache = diff
             if (invokedCommand) {
                 invokedCommand = false
@@ -127,7 +130,7 @@ object Ping {
                     }
 
                     2 -> {
-                        if (lastPingAt < 0 && System.nanoTime() - lastPingAt.absoluteValue > 1_000_000L * 6_000) {
+                        if (lastPingAt < 0 && System.nanoTime() - lastPongAt > 1_000_000L * 5_000) {
                             sendPing()
                         }
                     }
