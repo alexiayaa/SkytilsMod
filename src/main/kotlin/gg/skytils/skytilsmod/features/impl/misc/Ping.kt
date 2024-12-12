@@ -64,7 +64,10 @@ object Ping {
             return
         }
         if (System.nanoTime() - lastPongAt > 1_000_000L * 5_000) {
-            if (invokedCommand) displayPing()
+            if (invokedCommand) {
+                invokedCommand = false
+                displayPing()
+            }
             return
         }
         Skytils.launch {
