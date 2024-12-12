@@ -99,6 +99,14 @@ object Ping {
         }
     }
 
+    @SubscribeEvent
+    fun onHypixelPacketFail(event: HypixelPacketEvent.FailedEvent) {
+        if (lastPingAt > 0 && event.type == "hypixel:ping") {
+            lastPingAt *= -1
+            invokedCommand = false
+        }
+    }
+
     class PingDisplayElement : GuiElement(name = "Ping Display", x = 10, y = 10) {
         override fun render() {
             if (Utils.isOnHypixel && toggled && mc.thePlayer != null) {
@@ -119,7 +127,7 @@ object Ping {
                     }
 
                     2 -> {
-                        if (lastPingAt < 0 && System.nanoTime() - lastPingAt.absoluteValue > 1_000_000L * 5_000) {
+                        if (lastPingAt < 0 && System.nanoTime() - lastPingAt.absoluteValue > 1_000_000L * 6_000) {
                             sendPing()
                         }
                     }
